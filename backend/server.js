@@ -28,19 +28,33 @@ mongoose.connect(MONGODB_URI, {useNewUrlParser:true, useUnifiedTopology:true}).t
     err => console.error('MongoDB connection error: ', err)
 )
 
-// socket connection
-io.on('connection', (socket) =>{
-    console.log('Client connected');
+// socket authentication
+io.use((socket, next) => {
+    const token = socket.handshake.query.token;
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if(err) return next(new Error('Authentication error'));
+        socket.userId = decoded.userId;
 
-    socket.on('disconnection', () => {
-        console.log('Client disconnected');
-    });
-
-    socket.on('message', (message) => {
-        console.log('Message received: ', message);
-        io.emit('message', message);
+        next();
     });
 });
+
+// socket connection
+io.on('connection', (socket) =>{
+    console.log(`Authenticated User connected: ${socket.userId}`);
+
+    socket.on('disconnection', () => {
+        console.log(`Autheticated User disconnected: ${socket.userId}`);
+    });
+
+    socket.on('send_message', data => {
+        const {receipientId, message} = data;
+        const receipientSocketId = userSockets[receipientId];
+        if(receipientSocketId)
+            socket.to(receipientSocketId).emit('new_message', {message, senderId: socket.userId});
+    });
+});
+let userSockets = {};
 
 // User signup endpoint
 app.post('/signup', async (req, res) => {
