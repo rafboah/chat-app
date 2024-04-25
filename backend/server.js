@@ -5,9 +5,9 @@ const http = require('http');
 const socketIO = require('socket.io');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const User = require('./models/User');
 const jwt = require('jsonwebtoken');
-// const bcrypt = require('bcryptjs');
+const authRoutes = require('./routes/authRoutes');
+const authenticateToken = require('./middleware/authenticateToken');    
 
 // const test = require('./server.js')
 
@@ -16,7 +16,6 @@ const server = http.createServer(app);
 const io = socketIO(server);
 
 const PORT = process.env.PORT || 3001;
-const jwtSecret = process.env.JWT_SECRET;
 const MONGODB_URI = process.env.MONGODB_URI;
 
 app.use(bodyParser.json());
@@ -60,36 +59,7 @@ io.on('connection', (socket) =>{
 });
 let userSockets = {};
 
-// User signup endpoint
-app.post('/signup', async (req, res) => {
-    try {
-        const newUser = User({
-            email: req.body.email,
-            username: req.body.username,
-            fullname: req.body.fullname,
-            password: req.body.password,
-            gender: req.body.gender
-        });
-        await newUser.save();
-        res.status(201).send('New User registered successfully');
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
-
-// User login endpoint
-app.post('/login', async (req, res) => {
-    try {
-        const user = await User.findOne({username: req.body.username});
-        if(!user || !await user.comparePassword(req.body.password))
-            return res.status(401).send('Authentication failed');
-
-        const token = jwt.sign({userId: user._id}, jwtSecret, {expiresIn: '50h'});
-        res.json({token});
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
+app.use('/api/auth', authRoutes);
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
