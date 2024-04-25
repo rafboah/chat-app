@@ -1,39 +1,12 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const authController = require('../controllers/authController');
 
 const router = express.Router();
-const jwtSecret = process.env.JWT_SECRET;
 
 // User signup endpoint
-router.post('/signup', async (req, res) => {
-    try {
-        const newUser = User({
-            email: req.body.email,
-            username: req.body.username,
-            fullname: req.body.fullname,
-            password: req.body.password,
-            gender: req.body.gender
-        });
-        await newUser.save();
-        res.status(201).send('New User registered successfully');
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
+router.post('/signup', authController.signup);
 
 // User login endpoint
-router.post('/login', async (req, res) => {
-    try {
-        const user = await User.findOne({username: req.body.username});
-        if(!user || !await user.comparePassword(req.body.password))
-            return res.status(401).send('Authentication failed');
+router.post('/login', authController.login);
 
-        const token = jwt.sign({userId: user._id}, jwtSecret, {expiresIn: '50h'});
-        res.json({token});
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
-
-module.exports = router;
+module.exports = router;    
