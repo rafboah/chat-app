@@ -36,6 +36,7 @@ io.use((socket, next) => {
             return next(new Error('Authentication error'));
 
         socket.userId = decoded.userId;
+        userSockets[socket.userId] = socket.id;
 
         next();
     });
@@ -43,19 +44,20 @@ io.use((socket, next) => {
 
 // socket connection
 io.on('connection', (socket) =>{
-    userSockets[socket.userId] = socket.id;
     console.log(`Authenticated User connected: ${socket.userId}`);
+
+    socket.on('send_message', data => {
+        const {recipientId, message} = data;
+        const recipientSocketId = userSockets[recipientId];
+        if(recipientSocketId)
+            io.to(recipientSocketId).emit('new_message', {message, senderId: socket.userId});
+        else
+            console.log(`Recipient ${recipientId} is not connected.`);
+    });
 
     socket.on('disconnect', () => {
         delete userSockets[socket.userId];
         console.log(`Autheticated User disconnected: ${socket.userId}`);
-    });
-
-    socket.on('send_message', data => {
-        const {receipientId, message} = data;
-        const receipientSocketId = userSockets[receipientId];
-        if(receipientSocketId)
-            socket.to(receipientSocketId).emit('new_message', {message, senderId: socket.userId});
     });
 });
 let userSockets = {};

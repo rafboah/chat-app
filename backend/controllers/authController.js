@@ -16,6 +16,9 @@ exports.signup = async (req, res) => {
         await newUser.save();
         res.status(201).send('New User registered successfully');
     } catch (error) {
+        if(error.name === 'ValidationError')
+            return res.status(400).send(error.message);
+        
         res.status(500).send(error.message);
     }
 };
