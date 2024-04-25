@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const User = require('./models/User');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+// const bcrypt = require('bcryptjs');
 
 // const test = require('./server.js')
 
@@ -32,7 +32,9 @@ mongoose.connect(MONGODB_URI, {useNewUrlParser:true, useUnifiedTopology:true}).t
 io.use((socket, next) => {
     const token = socket.handshake.query.token;
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if(err) return next(new Error('Authentication error'));
+        if(err) 
+            return next(new Error('Authentication error'));
+
         socket.userId = decoded.userId;
 
         next();
@@ -41,9 +43,11 @@ io.use((socket, next) => {
 
 // socket connection
 io.on('connection', (socket) =>{
+    userSockets[socket.userId] = socket.id;
     console.log(`Authenticated User connected: ${socket.userId}`);
 
-    socket.on('disconnection', () => {
+    socket.on('disconnect', () => {
+        delete userSockets[socket.userId];
         console.log(`Autheticated User disconnected: ${socket.userId}`);
     });
 
@@ -77,7 +81,7 @@ app.post('/signup', async (req, res) => {
 app.post('/login', async (req, res) => {
     try {
         const user = await User.findOne({username: req.body.username});
-        if(!user || !await bcrypt.compare(req.body.password))
+        if(!user || !await user.comparePassword(req.body.password))
             return res.status(401).send('Authentication failed');
 
         const token = jwt.sign({userId: user._id}, jwtSecret, {expiresIn: '50h'});
@@ -86,21 +90,6 @@ app.post('/login', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
-
-// Token authentication middleware
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if(token == null)
-        return res.sendStatus(401);
-
-    jwt.verify(token, jwtSecret, (err, user) => {
-        if(err) return res.sendStatus(403);
-        req.user = user;
-
-        next();
-    });
-}
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
