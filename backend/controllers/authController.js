@@ -18,8 +18,8 @@ exports.signup = async (req, res) => {
     } catch (error) {
         if(error.name === 'ValidationError')
             return res.status(400).send(error.message);
-        
-        res.status(500).send(error.message);
+
+        res.status(500).send('Internal Server Error');
     }
 };
 
@@ -33,6 +33,6 @@ exports.login = async (req, res) => {
         const token = jwt.sign({userId: user._id}, jwtSecret, {expiresIn: '50h'});
         res.json({token});
     } catch (error) {
-        res.status(500).send(error.message);
+        res.status(500).send('Internal Server Error');
     }
 };

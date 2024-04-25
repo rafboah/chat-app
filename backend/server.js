@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const authRoutes = require('./routes/authRoutes');
+const messageRoute = require('./routes/messageRoute');
 const authenticateToken = require('./middleware/authenticateToken');    
 
 // const test = require('./server.js')
@@ -63,6 +64,7 @@ io.on('connection', (socket) =>{
 let userSockets = {};
 
 app.use('/api/auth', authRoutes);
+app.use('/api/message', messageRoute);
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
