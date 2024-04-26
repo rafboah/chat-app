@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const jwtSecret = process.env.JWT_SECRET;
 
 // Token authentication middleware
-const authenticateToken = (req, res, next) => {
+const authenticateToken = function (req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     if(token == null)

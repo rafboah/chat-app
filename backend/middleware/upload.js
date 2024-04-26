@@ -3,7 +3,7 @@ const path = require('path');
 
 
 // file filter for security
-const fileFilter = (req, file, cb) => {
+const fileFilter = function (req, file, cb) {
     const filetypes = /jpeg|jpg|png|gif/;
     const ext = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = filetypes.test(file.mimetype);
