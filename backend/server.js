@@ -9,7 +9,8 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const authRoutes = require('./routes/authRoutes');
 const messageRoute = require('./routes/messageRoute');
-const authenticateToken = require('./middleware/authenticateToken');    
+const uploadRoute = require('./routes/uploadRoute');
+// const authenticateToken = require('./middleware/authenticateToken');    
 
 // const test = require('./server.js')
 
@@ -65,6 +66,8 @@ let userSockets = {};
 
 app.use('/api/auth', authRoutes);
 app.use('/api/message', messageRoute);
+app.use('/api/upload', uploadRoute);
+app.use('/uploads', express.static('uploads'));
 
 app.get('/', (req, res) => {
     res.send('Hello World!');

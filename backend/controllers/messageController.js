@@ -9,8 +9,15 @@ exports.messages = async (req, res) => {
                 {recipientId: req.user.userId, senderId: req.params.userId}
             ]
         }).sort('timestamp');
-        res.json(messages);            
+
+        const updatedMessages = messages.map(message => {
+            if(message.messageType !== 'text')
+                message.content = `${req.protocol}://${req.headers.host}${message.content}`;
+
+                return message;
+        })
+        res.json(updatedMessages);            
     } catch (error) {
-        res.status(500).send('Error retrieving messages')
+        res.status(500).send('Error retrieving messages');
     }
 }
