@@ -9,7 +9,9 @@ const authenticateToken = function (req, res, next) {
         return res.sendStatus(401);
 
     jwt.verify(token, jwtSecret, (err, user) => {
-        if(err) return res.sendStatus(403);
+        if(err || (req.params.userId !== user.userId)) 
+            return res.status(403).send('Authentication failed');
+
         req.user = user;
 
         next();
