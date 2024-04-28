@@ -17,14 +17,14 @@ exports.sendMessage = async (req, res) => {
     try {
         const newMessage = new Message(
             {
-                senderId: req.user.senderId,
+                senderId: req.user.userId,
                 receiverId: req.body.receiverId,
                 messageType: messageType,
                 content: messageContent,
             }
         );
         await newMessage.save();
-        res.status(201).json({message: 'Message sent successfully', data:newMessage});
+        res.status(201).json({message:'Message sent successfully', data:newMessage});
     } catch (error) {
         console.log('Error:',error);
         res.status(500).send('Error processing file upload');   
@@ -38,8 +38,8 @@ exports.fetchMessages = async (req, res) => {
         // console.log('UserId:', req.user.userId);
         const messages = await Message.find({
             $or: [
-                {senderId: req.user.userId, recipientId: req.params.userId},
-                {recipientId: req.user.userId, senderId: req.params.userId}
+                {senderId: req.user.userId, receiverId: req.params.userId},
+                {receiverId: req.user.userId, senderId: req.params.userId}
             ]
         }).sort('timestamp');
 
